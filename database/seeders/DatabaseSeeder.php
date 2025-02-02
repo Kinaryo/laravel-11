@@ -5,10 +5,7 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,17 +14,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Panggil seeder kategori dan user
+        $this->call([
+            CategorySeeder::class,
+            UserSeeder::class,
+        ]);
 
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        // Ambil 5 user secara acak
+        $users = User::inRandomOrder()->limit(5)->get();
 
-        $this->call(CategorySeeder::class, UserSeeder::class);
-        Post::factory(100)->recycle([
-            Category::all(),
-            User::all(),
-        ])->create();
+        // Ambil semua kategori
+        $categories = Category::all();
+
+        // Buat 100 post dengan user dan kategori yang dipilih
+        Post::factory(100)
+            ->recycle($users) // Gunakan hanya 5 user random
+            ->create([
+                'category_id' => $categories->random()->id, // Pilih kategori acak
+            ]);
     }
 }

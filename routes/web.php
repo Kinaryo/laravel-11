@@ -1,29 +1,42 @@
 <?php
 
-use App\Models\Category;
 use App\Models\Post;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Route;
 use App\Models\User;
-
-
-
-
+use App\Models\Category;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MyDashboardPostController;
 
 Route::get('/', function () {
     return view('home', ['title' => 'Home Page']);
 });
 
-Route::get('/posts', function () {
+Route::get('/posts', [PostController::class,'posts']);
 
-    // $posts = Post::with(['author','category'])->get();
-    $posts = Post::latest()->get();
 
-    return view('posts', ['title' => 'blog', 'posts' => $posts]);
-});
+// Auth
+Route::get('/login',[AuthController::class, 'viewLogin'])->middleware('guest');
+Route::post('/login',[AuthController::class, 'authenticate'])->name('login');
+Route::get('/register',[AuthController::class, 'viewRegister'])->middleware('guest');;
+Route::post('/register',[AuthController::class, 'storeRegister'])->middleware('guest');;
+Route::post('/logout',[AuthController::class,'logout'])->middleware('auth');
+
+Route::get ('/mydashboard', [DashboardController::class,'index'])->middleware('auth');
+
+Route::get('/dashboard/posts/checkSlug',[MyDashboardPostController::class, 'checkSlug']);
+Route::resource('/mydashboard/posts', MyDashboardPostController::class)->middleware('auth');
+
+
+
+
 
 
 Route::get('/posts/{post:slug}', function (Post $post) {
+    
     return view('post', [
         'title' => 'Single Post',
         'post' => $post,
@@ -40,16 +53,6 @@ Route::get('/authors/{user:username}', function (User $user) {
 });
 
 
-Route::get('/categories/{category:slug}', function (Category $category) {
-
-    // $posts = $category->posts->load('category','author');
-
-    return view('posts', [
-       'title' => 'Articl In '. $category->name,
-       'posts'=> $category->posts
-    ]);
-});
-
 
 
 Route::get('/about', function () {
@@ -58,3 +61,5 @@ Route::get('/about', function () {
 Route::get('/contact', function () {
     return view('contact', ['title' => 'contact']);
 });
+
+
